@@ -5,12 +5,15 @@
     <link name="world"/>
 
     <xacro:property name="radius"  value="0.002"/>
+    <xacro:property name="inner_radius"  value="0.00192"/>
     <xacro:property name="length"  value="0.1"/>
-    <xacro:property name="mass"  value="0.01"/>
+    <xacro:property name="density"  value="8000"/>
 
-    <xacro:property name="needle_inertia_ixx"  value="${mass*(3*radius*radius + length*length)/12}"/>
-    <xacro:property name="needle_inertia_iyy"  value="${mass*(3*radius*radius + length*length)/12}"/>
-    <xacro:property name="needle_inertia_izz"  value="${mass*radius*radius/2}"/>
+    <xacro:property name="mass"  value="${density * pi * (radius * radius - inner_radius * inner_radius) * length}"/>
+
+    <xacro:property name="needle_inertia_ixx"  value="${mass*(3*(radius*radius + inner_radius * inner_radius) + length*length)/12}"/>
+    <xacro:property name="needle_inertia_iyy"  value="${mass*(3*(radius*radius + inner_radius * inner_radius) + length*length)/12}"/>
+    <xacro:property name="needle_inertia_izz"  value="${0.5*mass*(inner_radius * inner_radius + radius * radius)}"/>
 
     <xacro:ur_robot
         name="ur5e"
