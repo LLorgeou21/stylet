@@ -4,6 +4,14 @@
     <xacro:include filename="$(find ur_description)/urdf/ur_macro.xacro"/>
     <link name="world"/>
 
+    <xacro:property name="radius"  value="0.002"/>
+    <xacro:property name="length"  value="0.1"/>
+    <xacro:property name="mass"  value="0.01"/>
+
+    <xacro:property name="needle_inertia_ixx"  value="${mass*(3*radius*radius + length*length)/12}"/>
+    <xacro:property name="needle_inertia_iyy"  value="${mass*(3*radius*radius + length*length)/12}"/>
+    <xacro:property name="needle_inertia_izz"  value="${mass*radius*radius/2}"/>
+
     <xacro:ur_robot
         name="ur5e"
         tf_prefix=""
@@ -14,5 +22,40 @@
         visual_parameters_file="$(find ur_description)/config/ur5e/visual_parameters.yaml">
         <origin xyz="0 0 0" rpy="0 0 0"/>
     </xacro:ur_robot>
+
+    <link name="needle_base">
+        <visual>
+        <origin xyz="0 0 ${length/2}" rpy="0 0 0"/>
+        <geometry>
+            <cylinder radius="${radius}" length="${length}"/>
+        </geometry>
+        </visual>
+        <collision>
+        <origin xyz="0 0 ${length/2}" rpy="0 0 0"/>
+        <geometry>
+            <cylinder radius="${radius}" length="${length}"/>
+        </geometry>
+        </collision>
+        <inertial>
+        <origin xyz="0 0 ${length/2}" rpy="0 0 0"/>
+        <mass value="${mass}"/>
+        <inertia ixx="${needle_inertia_ixx}" iyy="${needle_inertia_iyy}" izz="${needle_inertia_izz}" ixy="0.0" ixz="0.0" iyz="0.0"/>
+        </inertial>
+    </link>
+
+    <joint name="needle_joint" type="fixed">
+        <parent link="tool0"/>
+        <child link="needle_base"/>
+        <origin xyz="0 0 0"/>
+    </joint>
+
+    <link name="needle_tcp">
+    </link>
+
+    <joint name="joint_tcp" type="fixed">
+        <parent link="needle_base"/>
+        <child link="needle_tcp"/>
+        <origin xyz="0 0 ${length}"/>
+    </joint>
 
 </robot>
