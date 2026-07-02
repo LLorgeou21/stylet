@@ -36,7 +36,7 @@ def generate_launch_description():
                 get_package_share_directory("ros_gz_sim"), "launch", "gz_sim.launch.py"
             )
         ),
-        launch_arguments={"gz_args": world_path}.items(),
+        launch_arguments={"gz_args": "-v 4 " + world_path}.items(),
     )
 
     # --- Bloc 3 : publier robot_description (comme en 1.3/1.4) ---
@@ -53,6 +53,19 @@ def generate_launch_description():
         arguments=["-topic", "/robot_description", "-name", "ur5e"],
     )
 
+    # --- Bloc 5 : pont Gazebo -> ROS 2 pour le capteur de force/couple ---
+    gz_ft_topic = "/world/stylet_world/model/ur5e/joint/needle_joint/sensor/needle_ft_sensor/forcetorque"
+    ft_bridge = Node(
+        package="ros_gz_bridge",
+        executable="parameter_bridge",
+        arguments=[
+            gz_ft_topic + "@geometry_msgs/msg/WrenchStamped[gz.msgs.Wrench",
+        ],
+        remappings=[
+            (gz_ft_topic, "/stylet/haptics/wrench"),
+        ],
+    )
+
     # --- Assemblage final : TOUT doit être dans cette liste ---
     return LaunchDescription(
         [
@@ -60,5 +73,6 @@ def generate_launch_description():
             gz_sim,
             robot_state_publisher,
             spawn_robot,
+            ft_bridge,
         ]
     )
