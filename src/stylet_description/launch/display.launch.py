@@ -12,6 +12,7 @@ def generate_launch_description():
     # Charger XACRO et convertir en string URDF
     xacro_file = os.path.join(pkg, "urdf", "robot.urdf.xacro")
     robot_description = xacro.process_file(xacro_file).toxml()
+    rviz_config = os.path.join(pkg, "rviz", "display.rviz")
 
     return LaunchDescription(
         [
@@ -30,6 +31,7 @@ def generate_launch_description():
             Node(
                 package="rviz2",
                 executable="rviz2",
+                arguments=["-d", rviz_config],
             ),
         ]
     )
