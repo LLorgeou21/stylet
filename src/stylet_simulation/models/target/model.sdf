@@ -1,0 +1,36 @@
+<?xml version="1.0"?>
+<sdf version="1.9">
+  <model name="target">
+    <static>true</static>
+
+    <link name="target_link">
+
+      <visual name="target_visual">
+        <geometry>
+          <mesh>
+            <scale>0.005 0.005 0.005</scale>
+            <uri>meshes/target.stl</uri>
+          </mesh>
+        </geometry>
+      </visual>
+
+      <collision name="target_collision">
+        <geometry>
+          <mesh>
+            <scale>0.005 0.005 0.005</scale>
+            <uri>meshes/target_collision.stl</uri>
+          </mesh>
+        </geometry>
+      </collision>
+
+      <inertial>
+        <mass>0.0828125</mass>
+        <inertia>
+          <ixx>0.0000345</ixx> <iyy>0.0000345</iyy> <izz>0.0000345</izz>
+          <ixy>0.0</ixy> <ixz>0.0</ixz> <iyz>0.0</iyz>
+        </inertia>
+      </inertial>
+
+    </link>
+  </model>
+</sdf>
