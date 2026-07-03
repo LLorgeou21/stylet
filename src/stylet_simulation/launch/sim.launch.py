@@ -66,6 +66,51 @@ def generate_launch_description():
         ],
     )
 
+    gz_lidar1_topic = "/lidar_1/points"
+    gz_lidar2_topic = "/lidar_2/points"
+    gz_lidar3_topic = "/lidar_3/points"
+    lidar_bridge = Node(
+        package="ros_gz_bridge",
+        executable="parameter_bridge",
+        arguments=[
+            gz_lidar1_topic + "@sensor_msgs/msg/PointCloud2[gz.msgs.PointCloudPacked",
+            gz_lidar2_topic + "@sensor_msgs/msg/PointCloud2[gz.msgs.PointCloudPacked",
+            gz_lidar3_topic + "@sensor_msgs/msg/PointCloud2[gz.msgs.PointCloudPacked",
+        ],
+    )
+
+    # --- Bloc 6 : TF statique pour les 3 LiDAR (fixes, définis en SDF pur, jamais publiés en TF sinon) ---
+    tf_lidar_front = Node(
+        package="tf2_ros",
+        executable="static_transform_publisher",
+        arguments=[
+            "--x", "0", "--y", "0.40", "--z", "0.02",
+            "--roll", "0", "--pitch", "0", "--yaw", "0",
+            "--frame-id", "world",
+            "--child-frame-id", "lidar_rig/lidar_front/lidar_front_sensor",
+        ],
+    )
+    tf_lidar_left = Node(
+        package="tf2_ros",
+        executable="static_transform_publisher",
+        arguments=[
+            "--x", "0.075", "--y", "0.075", "--z", "0.02",
+            "--roll", "0", "--pitch", "0", "--yaw", "0.785",
+            "--frame-id", "world",
+            "--child-frame-id", "lidar_rig/lidar_left/lidar_left_sensor",
+        ],
+    )
+    tf_lidar_top = Node(
+        package="tf2_ros",
+        executable="static_transform_publisher",
+        arguments=[
+            "--x", "0.30", "--y", "0.30", "--z", "0.40",
+            "--roll", "0", "--pitch", "1.571", "--yaw", "0",
+            "--frame-id", "world",
+            "--child-frame-id", "lidar_rig/lidar_top/lidar_top_sensor",
+        ],
+    )
+
     # --- Assemblage final : TOUT doit être dans cette liste ---
     return LaunchDescription(
         [
@@ -74,5 +119,9 @@ def generate_launch_description():
             robot_state_publisher,
             spawn_robot,
             ft_bridge,
+            lidar_bridge,
+            tf_lidar_front,
+            tf_lidar_left,
+            tf_lidar_top,
         ]
     )
