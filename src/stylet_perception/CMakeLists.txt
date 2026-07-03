@@ -23,4 +23,14 @@ if(BUILD_TESTING)
   ament_lint_auto_find_test_dependencies()
 endif()
 
+find_package(rclcpp REQUIRED)
+find_package(sensor_msgs REQUIRED)
+find_package(tf2_ros REQUIRED)
+find_package(tf2_sensor_msgs REQUIRED)
+find_package(message_filters REQUIRED)
+
+add_executable(point_cloud_merger src/point_cloud_merger.cpp)
+ament_target_dependencies(point_cloud_merger rclcpp sensor_msgs tf2_ros tf2_sensor_msgs message_filters)
+install(TARGETS point_cloud_merger DESTINATION lib/${PROJECT_NAME})
+
 ament_package()
