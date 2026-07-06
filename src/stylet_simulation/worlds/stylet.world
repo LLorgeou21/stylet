@@ -51,6 +51,7 @@
         </collision>
         <visual name="lidar_front_visual">
           <geometry><box><size>0.02 0.02 0.02</size></box></geometry>
+          <material><ambient>1 0 0 1</ambient><diffuse>1 0 0 1</diffuse><specular>1 0 0 1</specular></material>
         </visual>
         <sensor name="lidar_front_sensor" type="gpu_lidar">
           <topic>/lidar_1</topic>
@@ -88,6 +89,7 @@
         </collision>
         <visual name="lidar_left_visual">
           <geometry><box><size>0.02 0.02 0.02</size></box></geometry>
+          <material><ambient>1 0 0 1</ambient><diffuse>1 0 0 1</diffuse><specular>1 0 0 1</specular></material>
         </visual>
         <sensor name="lidar_left_sensor" type="gpu_lidar">
           <topic>/lidar_2</topic>
@@ -125,9 +127,86 @@
         </collision>
         <visual name="lidar_top_visual">
           <geometry><box><size>0.02 0.02 0.02</size></box></geometry>
+          <material><ambient>1 0 0 1</ambient><diffuse>1 0 0 1</diffuse><specular>1 0 0 1</specular></material>
         </visual>
         <sensor name="lidar_top_sensor" type="gpu_lidar">
           <topic>/lidar_3</topic>
+          <update_rate>10</update_rate>
+          <alwaysOn>1</alwaysOn>
+          <visualize>true</visualize>
+          <lidar>
+            <scan>
+              <horizontal>
+                <samples>640</samples>
+                <resolution>1</resolution>
+                <min_angle>-0.5</min_angle>
+                <max_angle>0.5</max_angle>
+              </horizontal>
+              <vertical>
+                <samples>16</samples>
+                <resolution>1</resolution>
+                <min_angle>-0.261799</min_angle>
+                <max_angle>0.261799</max_angle>
+              </vertical>
+            </scan>
+            <range>
+              <min>0.05</min>
+              <max>2.0</max>
+              <resolution>0.01</resolution>
+            </range>
+          </lidar>
+        </sensor>
+      </link>
+
+      <link name="lidar_back">
+        <pose>0.45 0.0 0.02 0 0 2.111</pose>
+        <collision name="lidar_back_collision">
+          <geometry><box><size>0.02 0.02 0.02</size></box></geometry>
+        </collision>
+        <visual name="lidar_back_visual">
+          <geometry><box><size>0.02 0.02 0.02</size></box></geometry>
+          <material><ambient>1 0 0 1</ambient><diffuse>1 0 0 1</diffuse><specular>1 0 0 1</specular></material>
+        </visual>
+        <sensor name="lidar_back_sensor" type="gpu_lidar">
+          <topic>/lidar_4</topic>
+          <update_rate>10</update_rate>
+          <alwaysOn>1</alwaysOn>
+          <visualize>true</visualize>
+          <lidar>
+            <scan>
+              <horizontal>
+                <samples>640</samples>
+                <resolution>1</resolution>
+                <min_angle>-0.5</min_angle>
+                <max_angle>0.5</max_angle>
+              </horizontal>
+              <vertical>
+                <samples>16</samples>
+                <resolution>1</resolution>
+                <min_angle>-0.261799</min_angle>
+                <max_angle>0.261799</max_angle>
+              </vertical>
+            </scan>
+            <range>
+              <min>0.05</min>
+              <max>2.0</max>
+              <resolution>0.01</resolution>
+            </range>
+          </lidar>
+        </sensor>
+      </link>
+
+      <link name="lidar_side">
+        <pose>0.25 0.60 0.10 0 0 -1.5708</pose>
+        <collision name="lidar_side_collision">
+          <geometry><box><size>0.02 0.02 0.02</size></box></geometry>
+        </collision>
+        <visual name="lidar_side_visual">
+          <geometry><box><size>0.02 0.02 0.02</size></box></geometry>
+          <material><ambient>1 0 0 1</ambient><diffuse>1 0 0 1</diffuse><specular>1 0 0 1</specular></material>
+        </visual>
+        <sensor name="lidar_side_sensor" type="gpu_lidar">
+          <topic>/lidar_5</topic>
           <update_rate>10</update_rate>
           <alwaysOn>1</alwaysOn>
           <visualize>true</visualize>

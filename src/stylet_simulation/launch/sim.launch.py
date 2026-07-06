@@ -69,6 +69,8 @@ def generate_launch_description():
     gz_lidar1_topic = "/lidar_1/points"
     gz_lidar2_topic = "/lidar_2/points"
     gz_lidar3_topic = "/lidar_3/points"
+    gz_lidar4_topic = "/lidar_4/points"
+    gz_lidar5_topic = "/lidar_5/points"
     lidar_bridge = Node(
         package="ros_gz_bridge",
         executable="parameter_bridge",
@@ -76,6 +78,8 @@ def generate_launch_description():
             gz_lidar1_topic + "@sensor_msgs/msg/PointCloud2[gz.msgs.PointCloudPacked",
             gz_lidar2_topic + "@sensor_msgs/msg/PointCloud2[gz.msgs.PointCloudPacked",
             gz_lidar3_topic + "@sensor_msgs/msg/PointCloud2[gz.msgs.PointCloudPacked",
+            gz_lidar4_topic + "@sensor_msgs/msg/PointCloud2[gz.msgs.PointCloudPacked",
+            gz_lidar5_topic + "@sensor_msgs/msg/PointCloud2[gz.msgs.PointCloudPacked",
         ],
     )
 
@@ -110,6 +114,26 @@ def generate_launch_description():
             "--child-frame-id", "lidar_rig/lidar_top/lidar_top_sensor",
         ],
     )
+    tf_lidar_back = Node(
+        package="tf2_ros",
+        executable="static_transform_publisher",
+        arguments=[
+            "--x", "0.45", "--y", "0.0", "--z", "0.02",
+            "--roll", "0", "--pitch", "0", "--yaw", "2.111",
+            "--frame-id", "world",
+            "--child-frame-id", "lidar_rig/lidar_back/lidar_back_sensor",
+        ],
+    )
+    tf_lidar_side = Node(
+        package="tf2_ros",
+        executable="static_transform_publisher",
+        arguments=[
+            "--x", "0.25", "--y", "0.60", "--z", "0.10",
+            "--roll", "0", "--pitch", "0", "--yaw", "-1.5708",
+            "--frame-id", "world",
+            "--child-frame-id", "lidar_rig/lidar_side/lidar_side_sensor",
+        ],
+    )
 
     # --- Assemblage final : TOUT doit être dans cette liste ---
     return LaunchDescription(
@@ -123,5 +147,7 @@ def generate_launch_description():
             tf_lidar_front,
             tf_lidar_left,
             tf_lidar_top,
+            tf_lidar_back,
+            tf_lidar_side,
         ]
     )

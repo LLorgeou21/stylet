@@ -1,0 +1,25 @@
+moveit_setup_assistant_config:
+  urdf:
+    package: stylet_description
+    relative_path: urdf/robot.urdf.xacro
+  srdf:
+    relative_path: config/stylet.srdf
+  package_settings:
+    author_name: Lilian Lorgeou
+    author_email: lilian.lorgeou@gmail.com
+    generated_timestamp: 1783347278
+  control_xacro:
+    command:
+      - position
+    state:
+      - position
+      - velocity
+  modified_urdf:
+    xacros:
+      - control_xacro
+  control_xacro:
+    command:
+      - position
+    state:
+      - position
+      - velocity
