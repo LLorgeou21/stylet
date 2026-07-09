@@ -2,6 +2,8 @@
 
 A ROS 2 simulation of **image-guided robotic needle insertion**: a UR5e arm locates a surgical target purely from LiDAR point clouds, then autonomously approaches and inserts a needle into it, with force-triggered replanning along the way.
 
+![Stylet demo: LiDAR scan, registration, approach, and insertion](docs/demo.gif)
+
 Built as a portfolio project to demonstrate applied robotics engineering: perception (LiDAR fusion + ICP/GICP registration), motion planning (MoveIt 2), a from-scratch design pivot when the original plan hit a real physical constraint, and end-to-end system integration in simulation (Gazebo Harmonic).
 
 For the full technical write-up - design decisions, what was tried and abandoned, validation methodology, known limitations - see **[ARCHITECTURE.md](ARCHITECTURE.md)**.
