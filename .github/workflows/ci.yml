@@ -25,10 +25,15 @@ jobs:
           rosdep update
           rosdep install --from-paths src --ignore-src -r -y
 
+      # --parallel-workers 1: the hosted runner has 7GB RAM / 2 cores - building
+      # multiple heavy packages at once (moveit_ros_planning_interface for
+      # stylet_planning, Qt5/rviz for stylet_ui) can exceed that and get the
+      # job silently killed rather than fail with a normal compiler error.
+      # Slower, but reliable.
       - name: Build workspace
         run: |
           source /opt/ros/jazzy/setup.bash
-          colcon build --cmake-args -DBUILD_TESTING=ON
+          colcon build --cmake-args -DBUILD_TESTING=ON --parallel-workers 1
 
       # Runs only the hand-written gtest unit tests (pure-math functions: the
       # approach-orientation construction, the allowed-collision-matrix merge
