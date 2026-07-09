@@ -20,6 +20,7 @@ jobs:
 
       - name: Install dependencies (rosdep)
         run: |
+          source /opt/ros/jazzy/setup.bash
           sudo apt-get update
           rosdep update
           rosdep install --from-paths src --ignore-src -r -y
