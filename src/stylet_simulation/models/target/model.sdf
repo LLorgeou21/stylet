@@ -21,6 +21,14 @@
             <uri>meshes/target_collision.stl</uri>
           </mesh>
         </geometry>
+        <!-- Shares no bit with needle_base (robot.urdf.xacro, 0x0F) - see the
+             comment there for why (no tissue model before Phase 4, rigid
+             contact otherwise unusable for testing the insertion phase). -->
+        <surface>
+          <contact>
+            <collide_bitmask>0xF0</collide_bitmask>
+          </contact>
+        </surface>
       </collision>
 
       <inertial>

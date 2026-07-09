@@ -2,3 +2,10 @@ build/
 install/
 log/
 .vscode
+
+# scratch/debug artifacts (ros2 bag recordings, tf2_tools frame graphs)
+*.mcap
+rosbag2_*/
+demo_phase*/
+*.gv
+frames_*.pdf

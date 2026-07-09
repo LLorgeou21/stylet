@@ -1,17 +1,33 @@
 # This config file is used by ros2_control
+# use_sim_time added everywhere (ADR-033): without it, controllers hosted by
+# gz_ros2_control timestamp /joint_states with the wall clock, causing a
+# mismatch with move_group (which uses simulation time) - "current_state_monitor"
+# then receives a stale state, plans from a bad starting point, and can produce
+# a trajectory that physically hits the target while still reporting success.
 controller_manager:
   ros__parameters:
     update_rate: 100  # Hz
+    use_sim_time: true
 
     arm_controller:
       type: joint_trajectory_controller/JointTrajectoryController
 
+    # Insertion actuator (Phase 3.6): a controller separate from arm_controller,
+    # 3 prismatic joints (visual telescoping, robot.urdf.xacro) - the arm and
+    # the needle are commanded independently (see robot.urdf.xacro for why).
+    needle_insertion_controller:
+      type: joint_trajectory_controller/JointTrajectoryController
 
     joint_state_broadcaster:
       type: joint_state_broadcaster/JointStateBroadcaster
 
+joint_state_broadcaster:
+  ros__parameters:
+    use_sim_time: true
+
 arm_controller:
   ros__parameters:
+    use_sim_time: true
     joints:
       - shoulder_pan_joint
       - shoulder_lift_joint
@@ -19,6 +35,20 @@ arm_controller:
       - wrist_1_joint
       - wrist_2_joint
       - wrist_3_joint
+    command_interfaces:
+      - position
+    state_interfaces:
+      - position
+      - velocity
+    allow_nonzero_velocity_at_trajectory_end: true
+
+needle_insertion_controller:
+  ros__parameters:
+    use_sim_time: true
+    joints:
+      - needle_stage1_joint
+      - needle_stage2_joint
+      - needle_joint
     command_interfaces:
       - position
     state_interfaces:

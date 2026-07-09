@@ -3,7 +3,7 @@
 <package format="3">
   <name>stylet_haptics</name>
   <version>0.0.0</version>
-  <description>TODO: Package description</description>
+  <description>Placeholder for Phase 4 (simulated layered spring-damper tissue haptics) - not yet implemented</description>
   <maintainer email="lilian.lorgeou@gmail.com">Lilian Lorgeou</maintainer>
   <license>Apache-2.0</license>
 

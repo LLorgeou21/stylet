@@ -8,6 +8,8 @@ Panels:
     Name: Help
   - Class: rviz_common/Views
     Name: Views
+  - Class: stylet_ui/TargetDefinitionPanel
+    Name: TargetDefinitionPanel
 Visualization Manager:
   Displays:
     - Class: rviz_default_plugins/Grid
@@ -25,6 +27,14 @@ Visualization Manager:
         Scene Alpha: 1
       Scene Robot:
         Robot Alpha: 0.5
+      Value: true
+    - Class: rviz_default_plugins/Marker
+      Enabled: true
+      Marker Topic: /stylet_ui/entry_point_marker
+      Name: EntryPointMarker
+      Namespaces:
+        {}
+      Queue Size: 100
       Value: true
   Global Options:
     Fixed Frame: world

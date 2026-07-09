@@ -9,10 +9,10 @@
 #include "pcl/point_types.h"
 #include "pcl/io/pcd_io.h"
 #include "ament_index_cpp/get_package_share_directory.hpp"
-#include "pcl/common/centroid.h" // pour pcl::compute3DCentroid
-#include "pcl/common/pca.h"      // pour pcl::PCA
+#include "pcl/common/centroid.h" // for pcl::compute3DCentroid
+#include "pcl/common/pca.h"      // for pcl::PCA
 #include "pcl/registration/gicp.h"
-#include "pcl/common/transforms.h" // pour pcl::transformPointCloud
+#include "pcl/common/transforms.h" // for pcl::transformPointCloud
 #include <vector>
 #include <limits>
 #include <chrono>
@@ -27,9 +27,9 @@ public:
             "/stylet/perception/filtered_cloud", 10,
             std::bind(&SurfaceRegistration::callback, this, std::placeholders::_1));
 
-        // Debug visuel : nuage de reference transforme par T_final, publie dans le
-        // meme repere ("world") que filtered_cloud, pour verifier a l'oeil dans RViz
-        // si le recalage colle bien a l'objet observe.
+        // Visual debug: the reference cloud transformed by T_final, published
+        // in the same frame ("world") as filtered_cloud, to visually check in
+        // RViz whether the registration actually fits the observed object.
         aligned_debug_pub_ = this->create_publisher<sensor_msgs::msg::PointCloud2>(
             "/stylet/perception/aligned_reference_debug", 10);
 
@@ -39,13 +39,14 @@ public:
             "/stylet/perception/fitness_score", 10);
         tf_broadcaster_ = std::make_shared<tf2_ros::TransformBroadcaster>(*this);
 
-        // Rejet automatique : si le fitness du meilleur candidat depasse ce seuil,
-        // la pose n'est pas publiee (ni utilisee comme point de depart du suivi
-        // au prochain callback) - mieux vaut ne rien publier qu'une pose fausse.
+        // Automatic rejection: if the best candidate's fitness exceeds this
+        // threshold, the pose is neither published nor used as the tracking
+        // starting point for the next callback - better to publish nothing
+        // than a wrong pose.
         this->declare_parameter("fitness_reject_threshold", 0.01);
 
         reference_cloud = pcl::PointCloud<pcl::PointXYZ>::Ptr(new pcl::PointCloud<pcl::PointXYZ>);
-        path = ament_index_cpp::get_package_share_directory("stylet_perception") + "/config/target_reference.pcd";
+        std::string path = ament_index_cpp::get_package_share_directory("stylet_perception") + "/config/target_reference.pcd";
         pcl::io::loadPCDFile(path, *reference_cloud);
 
         reference_centroid_ = Eigen::Vector4f::Zero();
@@ -56,15 +57,16 @@ public:
         reference_axes_ = ensureProperRotation(pca.getEigenVectors());
 
         RCLCPP_INFO_STREAM(this->get_logger(),
-            "reference_cloud charge : " << reference_cloud->size() << " points (depuis " << path << ")");
+            "reference_cloud loaded: " << reference_cloud->size() << " points (from " << path << ")");
     };
 
 private:
     void callback(const sensor_msgs::msg::PointCloud2::ConstSharedPtr &msg);
 
-    // eigh/PCA ne garantit pas det=+1 (peut renvoyer une reflexion, pas une vraie
-    // rotation) - on force ca en inversant le dernier axe si besoin. Sans ca, les
-    // "4 combinaisons de signes valides" ci-dessous seraient en fait 4 reflexions.
+    // eigh/PCA doesn't guarantee det=+1 (it can return a reflection, not a
+    // true rotation) - this forces it by flipping the last axis if needed.
+    // Without this, the "4 valid sign combinations" below would actually be
+    // 4 reflections.
     static Eigen::Matrix3f ensureProperRotation(Eigen::Matrix3f axes)
     {
         if (axes.determinant() < 0.0f)
@@ -74,8 +76,8 @@ private:
         return axes;
     }
 
-    // Les 4 combinaisons de signes (sur 8 possibles) qui preservent une vraie
-    // rotation (determinant +1) plutot qu'une reflexion (determinant -1).
+    // The 4 sign combinations (out of 8 possible) that preserve a true
+    // rotation (determinant +1) rather than a reflection (determinant -1).
     static std::vector<Eigen::Vector3f> validSignFlips()
     {
         std::vector<Eigen::Vector3f> flips;
@@ -84,7 +86,7 @@ private:
                 for (float sz : {1.0f, -1.0f})
                     if (sx * sy * sz > 0.0f)
                         flips.push_back(Eigen::Vector3f(sx, sy, sz));
-        return flips; // toujours exactement 4 elements
+        return flips; // always exactly 4 elements
     }
 
     static Eigen::Matrix4f transformFromFlip(
@@ -106,10 +108,9 @@ private:
         return T_init;
     }
 
-    // Fitness au-dela duquel on considere que le suivi rapide (2 candidats) a
-    // echoue et qu'il faut retomber sur la recherche complete (4 departs).
-    // Valeur provisoire, a valider empiriquement comme le reste des seuils de ce
-    // noeud (voir session du 2026-07-06).
+    // Fitness beyond which fast tracking (2 candidates) is considered to have
+    // failed, falling back to the full search (4 starts). Provisional value,
+    // to be validated empirically like the rest of this node's thresholds.
     static constexpr double kTrackingLostFitness = 0.008;
 
     rclcpp::Subscription<sensor_msgs::msg::PointCloud2>::SharedPtr sub_;
@@ -117,13 +118,12 @@ private:
     rclcpp::Publisher<geometry_msgs::msg::PoseStamped>::SharedPtr pose_pub_;
     rclcpp::Publisher<std_msgs::msg::Float64>::SharedPtr fitness_pub_;
     std::shared_ptr<tf2_ros::TransformBroadcaster> tf_broadcaster_;
-    std::string path;
     pcl::PointCloud<pcl::PointXYZ>::Ptr reference_cloud;
     Eigen::Matrix3f reference_axes_;
     Eigen::Vector4f reference_centroid_;
 
-    // Etat de suivi d'un callback a l'autre (scene statique pour l'instant : la
-    // bonne transformation change tres peu entre deux frames).
+    // Tracking state carried from one callback to the next (static scene for
+    // now: the correct transform changes very little between two frames).
     bool has_previous_transformation_ = false;
     Eigen::Matrix4f previous_transformation_ = Eigen::Matrix4f::Identity();
     Eigen::Vector3f previous_best_flip_ = Eigen::Vector3f(1.0f, 1.0f, 1.0f);
@@ -148,8 +148,8 @@ void SurfaceRegistration::callback(const sensor_msgs::msg::PointCloud2::ConstSha
     Eigen::Matrix4f best_transformation = Eigen::Matrix4f::Identity();
     Eigen::Vector3f best_flip = previous_best_flip_;
 
-    // gicp cree UNE SEULE FOIS : reference_cloud et observed_cloud ne changent
-    // pas entre les tentatives, seul T_init change.
+    // gicp created ONCE: reference_cloud and observed_cloud don't change
+    // between attempts, only T_init does.
     pcl::GeneralizedIterativeClosestPoint<pcl::PointXYZ, pcl::PointXYZ> gicp;
     gicp.setInputSource(reference_cloud);
     gicp.setInputTarget(observed_cloud);
@@ -187,51 +187,52 @@ void SurfaceRegistration::callback(const sensor_msgs::msg::PointCloud2::ConstSha
     std::string mode;
     if (!has_previous_transformation_)
     {
-        // Premier callback : pas de transformation precedente, recherche complete
-        // sur les 4 departs (voir ADR-023 / session du 2026-07-06).
+        // First callback: no previous transform, full search across all 4
+        // starts (ADR-023/ADR-024).
         for (const auto &flip : validSignFlips())
         {
             try_flip(flip);
         }
-        mode = "recherche complete (premier callback)";
+        mode = "full search (first callback)";
     }
     else
     {
-        // Suivi : la scene est statique, la transformation precedente est deja
-        // proche de la bonne reponse. 2 candidats seulement :
-        //   - reprise directe de la transformation precedente (warm start)
-        //   - PCA fraiche sur le nuage courant, avec le signe qui gagnait avant
-        //     (le signe "naturel" de la PCA peut varier legerement d'une frame
-        //     a l'autre a cause du bruit, d'ou ce 2eme candidat independant)
+        // Tracking: the scene is static, the previous transform is already
+        // close to the right answer. Only 2 candidates:
+        //   - direct reuse of the previous transform (warm start)
+        //   - fresh PCA on the current cloud, with the sign that won last
+        //     time (PCA's "natural" sign can vary slightly frame to frame
+        //     due to noise, hence this 2nd, independent candidate)
         try_T_init(previous_transformation_);
         try_flip(previous_best_flip_);
 
         if (best_fitness > kTrackingLostFitness)
         {
-            // Suivi perdu (fitness anormalement mauvais) : on retombe sur la
-            // recherche complete pour se re-localiser correctement.
+            // Tracking lost (abnormally bad fitness): fall back to the full
+            // search to relocalize correctly.
             for (const auto &flip : validSignFlips())
             {
                 try_flip(flip);
             }
-            mode = "recherche complete (suivi perdu)";
+            mode = "full search (tracking lost)";
         }
         else
         {
-            mode = "suivi (2 candidats)";
+            mode = "tracking (2 candidates)";
         }
     }
 
     auto end_time = std::chrono::steady_clock::now();
     double elapsed_ms = std::chrono::duration<double, std::milli>(end_time - start_time).count();
 
-    // Verite terrain (simulation uniquement) : la cible est placee dans
-    // stylet.world a <pose>0.15 0.15 0 0 0 0</pose>, donc sans rotation. Le
-    // fitness GICP brut melange precision de pose et couverture partielle du
-    // nuage observe (reference complete vs vue partielle), ce qui le rend peu
-    // parlant : on lui prefere ici une comparaison directe a cette pose connue
-    // pour juger la qualite reelle du recalage. Le fitness reste le seul critere
-    // utilise pour CHOISIR le meilleur candidat (seule info dispo hors simulation).
+    // Ground truth (simulation only): the target is placed in stylet.world at
+    // <pose>0.15 0.15 0 0 0 0</pose>, so with no rotation. The raw GICP
+    // fitness conflates pose accuracy with the observed cloud's partial
+    // coverage (full reference vs. partial view), which makes it hard to
+    // interpret on its own - a direct comparison against this known pose is
+    // used instead to judge the actual registration quality. Fitness remains
+    // the only criterion used to CHOOSE the best candidate (the only
+    // information available outside simulation).
     const Eigen::Vector3f ground_truth_translation(0.15f, 0.15f, 0.0f);
     Eigen::Vector3f estimated_translation = best_transformation.block<3, 1>(0, 3);
     double translation_error_mm = (estimated_translation - ground_truth_translation).norm() * 1000.0;
@@ -243,13 +244,13 @@ void SurfaceRegistration::callback(const sensor_msgs::msg::PointCloud2::ConstSha
 
     RCLCPP_INFO_STREAM(this->get_logger(),
         "GICP has converged: " << best_converged
-        << " erreur translation: " << translation_error_mm << " mm"
-        << " erreur rotation: " << rotation_error_deg << " deg"
+        << " translation error: " << translation_error_mm << " mm"
+        << " rotation error: " << rotation_error_deg << " deg"
         << " mode: " << mode
-        << " temps: " << elapsed_ms << " ms");
+        << " time: " << elapsed_ms << " ms");
 
-    // fitness_score toujours publie (utile pour le monitoring/debug), meme si la
-    // pose finit par etre rejetee ci-dessous.
+    // fitness_score always published (useful for monitoring/debugging), even
+    // if the pose ends up rejected below.
     std_msgs::msg::Float64 fitness_msg;
     fitness_msg.data = best_fitness;
     fitness_pub_->publish(fitness_msg);
@@ -258,9 +259,9 @@ void SurfaceRegistration::callback(const sensor_msgs::msg::PointCloud2::ConstSha
     if (best_fitness > fitness_reject_threshold)
     {
         RCLCPP_WARN_STREAM(this->get_logger(),
-            "Recalage rejete (fitness " << best_fitness << " > seuil " << fitness_reject_threshold
-            << ") - pose/TF non publiees, recherche complete au prochain callback");
-        has_previous_transformation_ = false; // ne pas repartir d'une pose rejetee
+            "Registration rejected (fitness " << best_fitness << " > threshold " << fitness_reject_threshold
+            << ") - pose/TF not published, full search on next callback");
+        has_previous_transformation_ = false; // don't restart from a rejected pose
         return;
     }
 
@@ -283,9 +284,9 @@ void SurfaceRegistration::callback(const sensor_msgs::msg::PointCloud2::ConstSha
     pose_msg.pose.orientation.w = orientation.w();
     pose_pub_->publish(pose_msg);
 
-    // TF world -> target_frame (ADR-014 mentionne un intermediaire patient_base,
-    // pas encore implemente dans le projet - publie directement depuis world pour
-    // l'instant).
+    // TF world -> target_frame (ADR-014 mentions an intermediate patient_base
+    // frame, not yet implemented in this project - published directly from
+    // world for now).
     geometry_msgs::msg::TransformStamped tf_msg;
     tf_msg.header.frame_id = "world";
     tf_msg.header.stamp = msg->header.stamp;
@@ -296,14 +297,15 @@ void SurfaceRegistration::callback(const sensor_msgs::msg::PointCloud2::ConstSha
     tf_msg.transform.rotation = pose_msg.pose.orientation;
     tf_broadcaster_->sendTransform(tf_msg);
 
-    // Publie reference_cloud transforme par best_transformation, dans le meme
-    // repere que observed_cloud/filtered_cloud (world) : a comparer visuellement
-    // dans RViz (2 PointCloud2, Fixed Frame = world) pour juger du recalage.
+    // Publishes reference_cloud transformed by best_transformation, in the
+    // same frame as observed_cloud/filtered_cloud (world): meant to be
+    // compared visually in RViz (2 PointCloud2 displays, Fixed Frame = world)
+    // to judge the registration.
     pcl::PointCloud<pcl::PointXYZ> aligned_reference;
     pcl::transformPointCloud(*reference_cloud, aligned_reference, best_transformation);
     sensor_msgs::msg::PointCloud2 aligned_msg;
     pcl::toROSMsg(aligned_reference, aligned_msg);
-    aligned_msg.header = msg->header; // meme frame_id (world) et meme stamp
+    aligned_msg.header = msg->header; // same frame_id (world) and same stamp
     aligned_debug_pub_->publish(aligned_msg);
 }
 

@@ -5,8 +5,16 @@
 
         <ros2_control name="${name}" type="system">
             <hardware>
-                <!-- By default, set up controllers for simulation. This won't work on real hardware -->
-                <plugin>mock_components/GenericSystem</plugin>
+                <!-- gz_ros2_control: the controller_manager lives INSIDE Gazebo
+                     (ADR-033), rather than mock_components/GenericSystem (hardware
+                     simulated outside Gazebo, incompatible with real physics
+                     simulation). -->
+                <plugin>gz_ros2_control/GazeboSimSystem</plugin>
+                <!-- Default position gain (0.1) too low: the arm sagged/drifted
+                     under its own weight relative to the commanded position.
+                     Increased value, not fully verified - not certain about the
+                     exact name/placement of this parameter (sparsely documented). -->
+                <param name="position_proportional_gain">100</param>
             </hardware>
             <joint name="shoulder_pan_joint">
                 <command_interface name="position"/>
@@ -51,6 +59,40 @@
                 <state_interface name="velocity"/>
             </joint>
 
+            <!-- Insertion actuator (Phase 3.6, prismatic, 3-stage visual
+                 telescoping - robot.urdf.xacro) - always retracted at startup,
+                 no entry needed in initial_positions.yaml (which only covers
+                 the arm's rest pose). All 3 joints are commanded together by
+                 procedure_planner (same value split 3 ways, see
+                 executeInsertion()). -->
+            <joint name="needle_stage1_joint">
+                <command_interface name="position"/>
+                <state_interface name="position">
+                  <param name="initial_value">0.0</param>
+                </state_interface>
+                <state_interface name="velocity"/>
+            </joint>
+            <joint name="needle_stage2_joint">
+                <command_interface name="position"/>
+                <state_interface name="position">
+                  <param name="initial_value">0.0</param>
+                </state_interface>
+                <state_interface name="velocity"/>
+            </joint>
+            <joint name="needle_joint">
+                <command_interface name="position"/>
+                <state_interface name="position">
+                  <param name="initial_value">0.0</param>
+                </state_interface>
+                <state_interface name="velocity"/>
+            </joint>
+
         </ros2_control>
+
+        <gazebo>
+            <plugin filename="gz_ros2_control-system" name="gz_ros2_control::GazeboSimROS2ControlPlugin">
+                <parameters>$(find stylet_moveit_config)/config/ros2_controllers.yaml</parameters>
+            </plugin>
+        </gazebo>
     </xacro:macro>
 </robot>

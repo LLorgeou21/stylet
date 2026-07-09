@@ -8,15 +8,15 @@ import rclpy
 from geometry_msgs.msg import PoseStamped
 from rclpy.node import Node
 
-# Verite terrain (simulation uniquement) : la cible est statique, placee dans
-# stylet.world a <pose>0.15 0.15 0 0 0 0</pose>. Le plan original prevoyait de
-# requeter le service Gazebo "get_model_state" (Gazebo Classic) - ce service
-# n'existe pas nativement sous Gazebo Harmonic/ros_gz (Jazzy). On reutilise donc
-# la meme verite terrain codee en dur que dans surface_registration.cpp
-# (voir ADR-028), a remplacer par une vraie requete Gazebo si la cible devient
+# Ground truth (simulation only): the target is static, placed in
+# stylet.world at <pose>0.15 0.15 0 0 0 0</pose>. The original plan called
+# for querying the Gazebo "get_model_state" service (Gazebo Classic) - that
+# service doesn't natively exist under Gazebo Harmonic/ros_gz (Jazzy). This
+# reuses the same hardcoded ground truth as surface_registration.cpp
+# (ADR-028), to be replaced with a real Gazebo query if the target becomes
 # mobile (Phase 5).
 GROUND_TRUTH_TRANSLATION = (0.15, 0.15, 0.0)
-GROUND_TRUTH_QUATERNION = (0.0, 0.0, 0.0, 1.0)  # (x, y, z, w), identite
+GROUND_TRUTH_QUATERNION = (0.0, 0.0, 0.0, 1.0)  # (x, y, z, w), identity
 
 SUCCESS_TRANS_MM = 1.0
 SUCCESS_ROT_DEG = 0.5
@@ -46,7 +46,7 @@ class ValidateRegistration(Node):
             PoseStamped, "/stylet/perception/target_pose", self.callback, 10
         )
         self.get_logger().info(
-            f"En attente de {N_SAMPLES} echantillons sur /stylet/perception/target_pose..."
+            f"Waiting for {N_SAMPLES} samples on /stylet/perception/target_pose..."
         )
 
     def callback(self, msg: PoseStamped):
@@ -59,8 +59,8 @@ class ValidateRegistration(Node):
         self.samples.append((trans_err, rot_err, success))
 
         self.get_logger().info(
-            f"[{len(self.samples)}/{N_SAMPLES}] erreur translation: {trans_err:.4f} mm, "
-            f"erreur rotation: {rot_err:.4f} deg, succes: {success}"
+            f"[{len(self.samples)}/{N_SAMPLES}] translation error: {trans_err:.4f} mm, "
+            f"rotation error: {rot_err:.4f} deg, success: {success}"
         )
 
         if len(self.samples) == N_SAMPLES:
@@ -79,25 +79,25 @@ class ValidateRegistration(Node):
         successes = sum(1 for s in self.samples if s[2])
 
         self.get_logger().info(
-            f"Termine : {successes}/{N_SAMPLES} succes "
+            f"Done: {successes}/{N_SAMPLES} successes "
             f"(translation < {SUCCESS_TRANS_MM}mm, rotation < {SUCCESS_ROT_DEG}deg). "
-            f"CSV sauvegarde: {csv_path}"
+            f"CSV saved: {csv_path}"
         )
 
         fig, axes = plt.subplots(1, 2, figsize=(10, 4))
         axes[0].hist(trans_errs, bins=15)
-        axes[0].set_xlabel("Erreur translation (mm)")
-        axes[0].set_ylabel("Nombre d'echantillons")
-        axes[0].set_title("Erreur de translation")
+        axes[0].set_xlabel("Translation error (mm)")
+        axes[0].set_ylabel("Number of samples")
+        axes[0].set_title("Translation error")
 
         axes[1].hist(rot_errs, bins=15)
-        axes[1].set_xlabel("Erreur rotation (deg)")
-        axes[1].set_title("Erreur de rotation")
+        axes[1].set_xlabel("Rotation error (deg)")
+        axes[1].set_title("Rotation error")
 
         fig.tight_layout()
         png_path = os.path.join(script_dir, "../config/registration_errors.png")
         fig.savefig(png_path)
-        self.get_logger().info(f"Histogramme sauvegarde: {png_path}")
+        self.get_logger().info(f"Histogram saved: {png_path}")
 
         rclpy.shutdown()
 

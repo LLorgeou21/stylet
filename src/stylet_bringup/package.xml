@@ -3,11 +3,16 @@
 <package format="3">
   <name>stylet_bringup</name>
   <version>0.0.0</version>
-  <description>TODO: Package description</description>
+  <description>Single-launch entry point for the full end-to-end demo: simulation, perception, MoveIt, and the RViz UI</description>
   <maintainer email="lilian.lorgeou@gmail.com">Lilian Lorgeou</maintainer>
   <license>Apache-2.0</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <exec_depend>stylet_simulation</exec_depend>
+  <exec_depend>stylet_perception</exec_depend>
+  <exec_depend>stylet_moveit_config</exec_depend>
+  <exec_depend>stylet_planning</exec_depend>
 
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>ament_lint_common</test_depend>

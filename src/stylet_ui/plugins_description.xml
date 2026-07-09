@@ -1,0 +1,16 @@
+<library path="stylet_ui">
+  <class name="stylet_ui/TargetDefinitionPanel"
+         type="stylet_ui::TargetDefinitionPanel"
+         base_class_type="rviz_common::Panel">
+    <description>
+      Define the needle entry point on the target and monitor procedure state.
+    </description>
+  </class>
+  <class name="stylet_ui/EntryPointTool"
+         type="stylet_ui::EntryPointTool"
+         base_class_type="rviz_common::Tool">
+    <description>
+      Click on the target to set the needle entry point (publishes /procedure/entry_point).
+    </description>
+  </class>
+</library>

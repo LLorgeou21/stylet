@@ -41,25 +41,25 @@ private:
         const sensor_msgs::msg::PointCloud2::ConstSharedPtr &msg4,
         const sensor_msgs::msg::PointCloud2::ConstSharedPtr &msg5);
 
-    // TF2 : pour interroger les transformations (world <- capteur)
+    // TF2: to query transforms (world <- sensor)
     std::shared_ptr<tf2_ros::Buffer> tf_buffer_;
     std::shared_ptr<tf2_ros::TransformListener> tf_listener_;
 
-    // Les 5 abonnements "spéciaux" compatibles message_filters
+    // The 5 "special" message_filters-compatible subscriptions
     message_filters::Subscriber<sensor_msgs::msg::PointCloud2> sub1_;
     message_filters::Subscriber<sensor_msgs::msg::PointCloud2> sub2_;
     message_filters::Subscriber<sensor_msgs::msg::PointCloud2> sub3_;
     message_filters::Subscriber<sensor_msgs::msg::PointCloud2> sub4_;
     message_filters::Subscriber<sensor_msgs::msg::PointCloud2> sub5_;
 
-    // Le synchroniseur qui déclenche callback() quand les 5 sont alignés
+    // The synchronizer that triggers callback() once all 5 are aligned
     using SyncPolicy = message_filters::sync_policies::ApproximateTime<
         sensor_msgs::msg::PointCloud2, sensor_msgs::msg::PointCloud2,
         sensor_msgs::msg::PointCloud2, sensor_msgs::msg::PointCloud2,
         sensor_msgs::msg::PointCloud2>;
     std::shared_ptr<message_filters::Synchronizer<SyncPolicy>> sync_;
 
-    // Le publisher du nuage fusionné
+    // The merged-cloud publisher
     rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr merged_pub_;
 };
 
@@ -97,7 +97,7 @@ void PointCloudMerger::callback(
         sensor_msgs::msg::PointCloud2 transformed5;
         tf2::doTransform(*msg5, transformed5, transform5);
 
-        sensor_msgs::msg::PointCloud2 merged = transformed1; // copie l'en-tête/les champs de cloud 1
+        sensor_msgs::msg::PointCloud2 merged = transformed1; // copies cloud 1's header/fields
         merged.data.insert(merged.data.end(), transformed2.data.begin(), transformed2.data.end());
         merged.data.insert(merged.data.end(), transformed3.data.begin(), transformed3.data.end());
         merged.data.insert(merged.data.end(), transformed4.data.begin(), transformed4.data.end());

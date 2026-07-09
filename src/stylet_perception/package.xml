@@ -3,7 +3,7 @@
 <package format="3">
   <name>stylet_perception</name>
   <version>0.0.0</version>
-  <description>TODO: Package description</description>
+  <description>LiDAR perception pipeline: point cloud fusion, filtering, and GICP surface registration against a reference model</description>
   <maintainer email="lilian.lorgeou@gmail.com">Lilian Lorgeou</maintainer>
   <license>Apache-2.0</license>
 

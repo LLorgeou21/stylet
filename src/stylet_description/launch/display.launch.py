@@ -9,25 +9,25 @@ import xacro
 def generate_launch_description():
     pkg = get_package_share_directory("stylet_description")
 
-    # Charger XACRO et convertir en string URDF
+    # Load XACRO and convert it to a URDF string
     xacro_file = os.path.join(pkg, "urdf", "robot.urdf.xacro")
     robot_description = xacro.process_file(xacro_file).toxml()
     rviz_config = os.path.join(pkg, "rviz", "display.rviz")
 
     return LaunchDescription(
         [
-            # Publie robot_description sur /robot_description
+            # Publishes robot_description on /robot_description
             Node(
                 package="robot_state_publisher",
                 executable="robot_state_publisher",
                 parameters=[{"robot_description": robot_description}],
             ),
-            # GUI avec sliders pour bouger les joints
+            # GUI with sliders to move the joints
             Node(
                 package="joint_state_publisher_gui",
                 executable="joint_state_publisher_gui",
             ),
-            # Visualiseur 3D
+            # 3D viewer
             Node(
                 package="rviz2",
                 executable="rviz2",

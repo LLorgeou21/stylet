@@ -6,14 +6,38 @@
 
     <xacro:property name="radius"  value="0.002"/>
     <xacro:property name="inner_radius"  value="0.00192"/>
-    <xacro:property name="length"  value="0.1"/>
+    <!-- Lengthened (0.1 -> 0.15) together with the 3-stage telescoping below:
+         a slightly longer needle is a little more visible/realistic, and
+         needs a little less travel on the insertion joints for the same
+         target. -->
+    <xacro:property name="length"  value="0.15"/>
     <xacro:property name="density"  value="8000"/>
+
+    <!-- 3-stage telescoping: needle_joint alone, fixed to tool0, left a
+         visual "gap" as soon as its travel exceeded the needle's own length
+         (the render never connects needle_base back to tool0 beyond
+         ${length}). Two purely visual segments (needle_stage1/2_link, no
+         collision - no physical role, just there to never leave a gap)
+         share the total travel equally with the final stage (needle_joint):
+         3 x stage_max = the total travel range used by procedure_planner.cpp
+         (kMaxNeedleJointValue). Each segment extends backward by stage_max so
+         it always overlaps its parent, whatever its current extension. -->
+    <xacro:property name="stage_max"  value="0.10"/>
+    <xacro:property name="stage_mass"  value="0.01"/>
 
     <xacro:property name="mass"  value="${density * pi * (radius * radius - inner_radius * inner_radius) * length}"/>
 
     <xacro:property name="needle_inertia_ixx"  value="${mass*(3*(radius*radius + inner_radius * inner_radius) + length*length)/12}"/>
     <xacro:property name="needle_inertia_iyy"  value="${mass*(3*(radius*radius + inner_radius * inner_radius) + length*length)/12}"/>
     <xacro:property name="needle_inertia_izz"  value="${0.5*mass*(inner_radius * inner_radius + radius * radius)}"/>
+
+    <!-- Inertia of the visual segments (unverified placeholder - links with
+         no collision and no real physical role, just need a non-degenerate
+         inertia for the physics engine to accept the prismatic joint). -->
+    <xacro:property name="stage_length"  value="${2 * stage_max}"/>
+    <xacro:property name="stage_inertia_ixx"  value="${stage_mass*(3*radius*radius + stage_length*stage_length)/12}"/>
+    <xacro:property name="stage_inertia_iyy"  value="${stage_mass*(3*radius*radius + stage_length*stage_length)/12}"/>
+    <xacro:property name="stage_inertia_izz"  value="${0.5*stage_mass*radius*radius}"/>
 
     <xacro:ur_robot
         name="ur5e"
@@ -26,11 +50,66 @@
         <origin xyz="0 0 0" rpy="0 0 0"/>
     </xacro:ur_robot>
 
+    <!-- Two purely visual segments (no <collision>, never checked for
+         collision - see the telescoping comment above). Each segment is
+         centered on its own joint's origin and spans -stage_max to
+         +stage_max: it therefore always overlaps both its parent (backward)
+         and the next segment's origin (forward), whatever its current
+         extension. -->
+    <link name="needle_stage1_link">
+        <visual>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+            <cylinder radius="${radius}" length="${2 * stage_max}"/>
+        </geometry>
+        </visual>
+        <inertial>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <mass value="${stage_mass}"/>
+        <inertia ixx="${stage_inertia_ixx}" iyy="${stage_inertia_iyy}" izz="${stage_inertia_izz}" ixy="0.0" ixz="0.0" iyz="0.0"/>
+        </inertial>
+    </link>
+
+    <joint name="needle_stage1_joint" type="prismatic">
+        <parent link="tool0"/>
+        <child link="needle_stage1_link"/>
+        <origin xyz="0 0 0"/>
+        <axis xyz="0 0 1"/>
+        <limit lower="0" upper="${stage_max}" effort="50" velocity="0.05"/>
+    </joint>
+
+    <link name="needle_stage2_link">
+        <visual>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+            <cylinder radius="${radius}" length="${2 * stage_max}"/>
+        </geometry>
+        </visual>
+        <inertial>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <mass value="${stage_mass}"/>
+        <inertia ixx="${stage_inertia_ixx}" iyy="${stage_inertia_iyy}" izz="${stage_inertia_izz}" ixy="0.0" ixz="0.0" iyz="0.0"/>
+        </inertial>
+    </link>
+
+    <joint name="needle_stage2_joint" type="prismatic">
+        <parent link="needle_stage1_link"/>
+        <child link="needle_stage2_link"/>
+        <origin xyz="0 0 0"/>
+        <axis xyz="0 0 1"/>
+        <limit lower="0" upper="${stage_max}" effort="50" velocity="0.05"/>
+    </joint>
+
+    <!-- needle_base: the collision geometry stays the simple functional
+         segment (0 to length, as before) - only the visual is extended
+         backward (-stage_max) to stay connected to needle_stage2_link,
+         without changing the geometry used by the needle<->target collision
+         exemption (procedure_planner.cpp, allowNeedleTargetCollision()). -->
     <link name="needle_base">
         <visual>
-        <origin xyz="0 0 ${length/2}" rpy="0 0 0"/>
+        <origin xyz="0 0 ${(length - stage_max) / 2}" rpy="0 0 0"/>
         <geometry>
-            <cylinder radius="${radius}" length="${length}"/>
+            <cylinder radius="${radius}" length="${length + stage_max}"/>
         </geometry>
         </visual>
         <collision>
@@ -46,10 +125,21 @@
         </inertial>
     </link>
 
-    <joint name="needle_joint" type="fixed">
-        <parent link="tool0"/>
+    <!-- Prismatic (Phase 3.6): was originally fixed, but the geometry
+         doesn't allow reaching some targets without driving the wrist itself
+         into the target (a needle too short for a retreat+depth exceeding
+         its own length). Like a real medical insertion device: the arm
+         positions/orients once (stays still during insertion), a separate
+         actuator (needle_stage1/2_joint + this joint, 3 equal stages)
+         advances the needle. Limits not checked against any real
+         specification (no such actuator has been chosen/sized yet) - just a
+         travel range judged sufficient for current testing. -->
+    <joint name="needle_joint" type="prismatic">
+        <parent link="needle_stage2_link"/>
         <child link="needle_base"/>
         <origin xyz="0 0 0"/>
+        <axis xyz="0 0 1"/>
+        <limit lower="0" upper="${stage_max}" effort="50" velocity="0.05"/>
     </joint>
 
     <link name="needle_tcp">
@@ -61,11 +151,28 @@
         <origin xyz="0 0 ${length}"/>
     </joint>
     <gazebo reference="needle_joint">
-        <preserveFixedJoint>true</preserveFixedJoint>
         <sensor name="needle_ft_sensor" type="force_torque">
             <always_on>true</always_on>
             <update_rate>500</update_rate>
         </sensor>
+    </gazebo>
+
+    <!-- Disables rigid needle<->target collision (Phase 3.6): without a
+         tissue model (Phase 4, not yet done), Gazebo's default rigid contact
+         produces a force of several hundred Newtons on first contact -
+         unusable for testing the force-triggered stop/replan logic.
+         collide_bitmask shares no bit with target_collision's (model.sdf) -
+         everything else (ground, robot) keeps the default bitmask (0xFF),
+         so it's unaffected. To be removed/replaced once Phase 4 (layered
+         spring-damper model) is implemented. -->
+    <gazebo reference="needle_base">
+        <collision>
+            <surface>
+                <contact>
+                    <collide_bitmask>0x0F</collide_bitmask>
+                </contact>
+            </surface>
+        </collision>
     </gazebo>
 
 </robot>

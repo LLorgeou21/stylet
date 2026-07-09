@@ -1,0 +1,11 @@
+# Goal: nothing needed, procedure_planner uses the entry point already
+# received (topic /procedure/entry_point) and the fixed target point (a ROS 2
+# parameter) - the goal only triggers execution.
+---
+# Result
+bool success
+string message
+---
+# Feedback
+float32 progress
+string current_step
