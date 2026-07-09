@@ -1,5 +1,7 @@
 # Stylet
 
+[![CI](https://github.com/LLorgeou21/stylet/actions/workflows/ci.yml/badge.svg)](https://github.com/LLorgeou21/stylet/actions/workflows/ci.yml)
+
 A ROS 2 simulation of **image-guided robotic needle insertion**: a UR5e arm locates a surgical target purely from LiDAR point clouds, then autonomously approaches and inserts a needle into it, with force-triggered replanning along the way.
 
 ![Stylet demo: LiDAR scan, registration, approach, and insertion](docs/demo.gif)

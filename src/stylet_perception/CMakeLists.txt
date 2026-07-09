@@ -33,6 +33,7 @@ find_package(message_filters REQUIRED)
 find_package(PCL REQUIRED COMPONENTS common filters io registration)
 find_package(pcl_conversions REQUIRED)
 find_package(ament_index_cpp REQUIRED)
+find_package(Eigen3 REQUIRED)
 
 add_executable(cloud_preprocessor src/cloud_preprocessor.cpp)
 target_include_directories(cloud_preprocessor PUBLIC ${PCL_INCLUDE_DIRS})
@@ -45,11 +46,24 @@ ament_target_dependencies(point_cloud_merger rclcpp sensor_msgs tf2_ros tf2_sens
 install(TARGETS point_cloud_merger DESTINATION lib/${PROJECT_NAME})
 
 add_executable(surface_registration src/surface_registration.cpp)
-target_include_directories(surface_registration PUBLIC ${PCL_INCLUDE_DIRS})
+target_include_directories(surface_registration PUBLIC
+  ${PCL_INCLUDE_DIRS}
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include>
+)
 target_link_libraries(surface_registration ${PCL_LIBRARIES})
 ament_target_dependencies(surface_registration rclcpp sensor_msgs geometry_msgs std_msgs tf2_ros pcl_conversions ament_index_cpp)
 install(TARGETS surface_registration DESTINATION lib/${PROJECT_NAME})
 
 install(DIRECTORY config DESTINATION share/${PROJECT_NAME})
+
+if(BUILD_TESTING)
+  find_package(ament_cmake_gtest REQUIRED)
+  ament_add_gtest(test_registration_utils test/test_registration_utils.cpp)
+  target_include_directories(test_registration_utils PUBLIC
+    ${EIGEN3_INCLUDE_DIRS}
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  )
+endif()
 
 ament_package()

@@ -23,7 +23,11 @@ find_package(ament_index_cpp REQUIRED)
 find_package(control_msgs REQUIRED)
 
 add_executable(procedure_planner src/procedure_planner.cpp)
-target_include_directories(procedure_planner PUBLIC ${EIGEN3_INCLUDE_DIRS})
+target_include_directories(procedure_planner PUBLIC
+  ${EIGEN3_INCLUDE_DIRS}
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include>
+)
 ament_target_dependencies(procedure_planner
   rclcpp
   rclcpp_action
@@ -52,6 +56,14 @@ if(BUILD_TESTING)
   # a copyright and license is added to all source files
   set(ament_cmake_cpplint_FOUND TRUE)
   ament_lint_auto_find_test_dependencies()
+
+  find_package(ament_cmake_gtest REQUIRED)
+  ament_add_gtest(test_geometry_utils test/test_geometry_utils.cpp)
+  target_include_directories(test_geometry_utils PUBLIC
+    ${EIGEN3_INCLUDE_DIRS}
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  )
+  ament_target_dependencies(test_geometry_utils moveit_msgs)
 endif()
 
 ament_package()

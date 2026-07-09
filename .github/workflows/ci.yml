@@ -1,0 +1,47 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build_and_test:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup ROS 2 Jazzy
+        uses: ros-tooling/setup-ros@v0.7
+        with:
+          required-ros-distributions: jazzy
+
+      - name: Install dependencies (rosdep)
+        run: |
+          sudo apt-get update
+          rosdep update
+          rosdep install --from-paths src --ignore-src -r -y
+
+      - name: Build workspace
+        run: |
+          source /opt/ros/jazzy/setup.bash
+          colcon build --cmake-args -DBUILD_TESTING=ON
+
+      # Runs only the hand-written gtest unit tests (pure-math functions: the
+      # approach-orientation construction, the allowed-collision-matrix merge
+      # logic, the PCA sign-disambiguation used by GICP registration) - not
+      # the full colcon test suite. ament_lint_auto/ament_lint_common are
+      # already wired into every package.xml for local development, but the
+      # existing codebase predates enforcing them and isn't clean yet
+      # (mostly flake8 style preferences on launch files); making the CI gate
+      # depend on that today would fail for reasons unrelated to correctness.
+      # Fixing the lint backlog and folding `colcon test` in wholesale is
+      # tracked as follow-up work, not done here.
+      - name: Run unit tests
+        run: |
+          source /opt/ros/jazzy/setup.bash
+          source install/setup.bash
+          colcon test --ctest-args -R "test_geometry_utils|test_registration_utils"
+          colcon test-result --verbose
