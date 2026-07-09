@@ -7,11 +7,10 @@ endif()
 
 # find dependencies
 find_package(ament_cmake REQUIRED)
-find_package(urdf REQUIRED)
-find_package(xacro REQUIRED)
-# uncomment the following section in order to fill in
-# further dependencies manually.
-# find_package(<dependency> REQUIRED)
+# No C++ targets in this package - urdf/xacro are used only at runtime
+# (Python, via display.launch.py), already declared as <exec_depend> in
+# package.xml. find_package(urdf/xacro REQUIRED) here would be dead CMake
+# configuration with nothing to link against.
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
