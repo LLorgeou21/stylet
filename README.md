@@ -2,13 +2,11 @@
 
 [![CI](https://github.com/LLorgeou21/stylet/actions/workflows/ci.yml/badge.svg)](https://github.com/LLorgeou21/stylet/actions/workflows/ci.yml)
 
-A ROS 2 simulation of **image-guided robotic needle insertion**: a UR5e arm locates a surgical target purely from LiDAR point clouds, then autonomously approaches and inserts a needle into it, with force-triggered replanning along the way.
+A ROS 2 simulation of **image-guided robotic needle insertion**: a surgical target is located purely from LiDAR point clouds, then approached and inserted autonomously by a UR5e arm, with force-triggered replanning along the way.
 
 ![Stylet demo: LiDAR scan, registration, approach, and insertion](docs/demo.gif)
 
-Built as a portfolio project to demonstrate applied robotics engineering: perception (LiDAR fusion + ICP/GICP registration), motion planning (MoveIt 2), a from-scratch design pivot when the original plan hit a real physical constraint, and end-to-end system integration in simulation (Gazebo Harmonic).
-
-For the full technical write-up - design decisions, what was tried and abandoned, validation methodology, known limitations - see **[ARCHITECTURE.md](ARCHITECTURE.md)**.
+LiDAR-based perception (fusion + ICP/GICP registration), MoveIt 2 motion planning, and a custom prismatic needle-insertion actuator are integrated end-to-end in a Gazebo Harmonic simulation. The insertion approach was redesigned mid-project after the original plan hit a real physical constraint - see [ARCHITECTURE.md](ARCHITECTURE.md) for the full technical write-up: design decisions, what was tried and abandoned, validation methodology, and known limitations.
 
 ## Results
 
@@ -18,7 +16,7 @@ For the full technical write-up - design decisions, what was tried and abandoned
 | Approach (MoveIt planning to a pose oriented on the entry→target axis) | Position / alignment error | **0.86–2.5mm / <0.4°** |
 | Needle insertion (force-monitored, prismatic actuator) | Position / alignment error | **0.76–1.62mm / 0.03–0.4°**, up to 245mm of insertion depth, single-attempt success in every recorded test |
 
-A recorded demo (video + `ros2 bag`, 2026-07-09) covers the full pipeline: LiDAR scan → registration converges → operator picks an entry point in RViz → the arm approaches and inserts → live metrics in the panel.
+A recorded demo (video + `ros2 bag`) covers the full pipeline: LiDAR scan → registration converges → an entry point is picked in RViz → the arm approaches and inserts → live metrics are shown in the panel.
 
 ## Quickstart
 
